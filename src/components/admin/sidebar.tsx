@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Sparkles } from "lucide-react";
+import { LogOut, Sparkles } from "lucide-react";
+import { signOutAction } from "@/actions/auth";
 import { adminNav } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 
@@ -51,6 +52,18 @@ export function Sidebar() {
           );
         })}
       </nav>
+
+      <div className="border-t border-slate-200/80 p-3">
+        <form action={signOutAction}>
+          <button
+            type="submit"
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-zinc-600 hover:bg-slate-100"
+          >
+            <LogOut className="size-4" />
+            Switch account
+          </button>
+        </form>
+      </div>
     </aside>
   );
 }

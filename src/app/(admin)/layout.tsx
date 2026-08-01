@@ -1,5 +1,6 @@
 import { BottomNav } from "@/components/admin/bottom-nav";
 import { Sidebar } from "@/components/admin/sidebar";
+import { SignOutButton } from "@/components/auth/sign-out-button";
 
 export default function AdminLayout({
   children,
@@ -18,6 +19,7 @@ export default function AdminLayout({
               </p>
               <p className="text-xs text-zinc-500">On-the-go admin</p>
             </div>
+            <SignOutButton label="Switch account" />
           </header>
           <main className="flex-1 px-4 py-5 pb-28 md:px-8 md:py-8 md:pb-8">
             {children}
