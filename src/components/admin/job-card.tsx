@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { MarkCompleteButton } from "@/components/admin/mark-complete-button";
+import { JobActions } from "@/components/admin/job-actions";
 import { StatusBadge } from "@/components/admin/status-badge";
 import type { JobWithClient } from "@/lib/types";
 
@@ -18,7 +18,6 @@ type JobCardProps = {
 
 export function JobCard({ job, showDate = false }: JobCardProps) {
   const when = new Date(job.scheduled_date);
-  const completed = job.status === "completed";
 
   return (
     <Card className="border-0 bg-white/90 shadow-sm ring-1 ring-slate-200/80">
@@ -54,11 +53,9 @@ export function JobCard({ job, showDate = false }: JobCardProps) {
           <p className="text-sm text-zinc-500">{job.job_notes}</p>
         ) : null}
       </CardContent>
-      {!completed && job.status !== "cancelled" ? (
-        <CardFooter className="justify-end">
-          <MarkCompleteButton jobId={job.id} />
-        </CardFooter>
-      ) : null}
+      <CardFooter className="justify-end">
+        <JobActions jobId={job.id} status={job.status} />
+      </CardFooter>
     </Card>
   );
 }

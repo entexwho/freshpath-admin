@@ -2,17 +2,11 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check } from "lucide-react";
-import { markJobCompletedAction } from "@/actions/jobs";
+import { Banknote } from "lucide-react";
+import { markInvoicePaidAction } from "@/actions/invoices";
 import { Button } from "@/components/ui/button";
 
-export function MarkCompleteButton({
-  jobId,
-  disabled,
-}: {
-  jobId: string;
-  disabled?: boolean;
-}) {
+export function MarkInvoicePaidButton({ invoiceId }: { invoiceId: string }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -20,17 +14,17 @@ export function MarkCompleteButton({
     <Button
       type="button"
       size="sm"
-      disabled={disabled || pending}
       className="bg-teal-700 text-white hover:bg-teal-800"
+      disabled={pending}
       onClick={() => {
         startTransition(async () => {
-          await markJobCompletedAction(jobId);
+          await markInvoicePaidAction(invoiceId);
           router.refresh();
         });
       }}
     >
-      <Check data-icon="inline-start" />
-      {pending ? "Saving…" : "Mark as Completed"}
+      <Banknote data-icon="inline-start" />
+      {pending ? "Saving…" : "Mark paid"}
     </Button>
   );
 }
