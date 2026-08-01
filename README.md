@@ -1,44 +1,61 @@
-# FreshPath Admin (Phase 1)
+# FreshPath
 
-Internal admin dashboard for a house cleaning business — CRM + scheduling only. No client portal yet.
+House cleaning business app — admin CRM/scheduling plus a client portal.
 
 ## Stack
 
 - Next.js 14 (App Router)
-- React + Tailwind CSS
-- Shadcn UI
-- Supabase (PostgreSQL + Auth-ready RLS)
+- React + Tailwind CSS + Shadcn UI
+- Supabase (PostgreSQL, Auth, RLS)
 - Lucide React
 
-## Getting started
+## Quick start (demo mode)
 
 ```bash
 npm install
-cp .env.example .env.local
 npm run dev
 ```
 
-Without Supabase env vars, the app runs in **demo mode** using a local JSON store seeded with sample clients and today’s jobs.
+Open `http://localhost:3000` and choose **Admin** or **Client** on the login screen. Demo mode uses a local JSON store (no Supabase required).
 
-### Connect Supabase
+### iPhone on your Wi‑Fi
+
+```bash
+npm run dev -- -H 0.0.0.0 -p 3000
+```
+
+Then open `http://YOUR_PC_IP:3000` on the phone (allow port 3000 in Windows Firewall first).
+
+## Connect Supabase
 
 1. Create a Supabase project.
 2. Run [`supabase/schema.sql`](supabase/schema.sql) in the SQL Editor.
-3. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `.env.local`.
-4. Sign in as your admin user (RLS allows all authenticated users in Phase 1).
+3. Create Auth users; promote yourself with:
+
+```sql
+update public.profiles set role = 'admin' where id = '<your-user-uuid>';
+```
+
+4. Link a client login:
+
+```sql
+update public.profiles
+set client_id = '<client-uuid>', role = 'client'
+where id = '<auth-user-uuid>';
+```
+
+5. Copy URL + anon key into `.env.local` from `.env.example`.
 
 ## Routes
 
-| Route | Purpose |
-| --- | --- |
-| `/dashboard` | Today’s jobs with quick “Mark as Completed” |
-| `/calendar` | Week / month list of upcoming jobs |
-| `/clients` | Searchable CRM list + add client |
-| `/clients/[id]` | Client detail with Tap-to-Reveal access notes |
-| `/settings` | Workspace / data-source status |
-
-## Mobile-first admin shell
-
-- Mobile: fixed bottom navigation (Dashboard, Calendar, Clients, Settings)
-- Desktop: left sidebar
-- Soft slate / teal / zinc palette for on-the-go use
+| Area | Route | Purpose |
+| --- | --- | --- |
+| Auth | `/login` | Demo role picker or Supabase email login |
+| Admin | `/dashboard` | Today’s jobs + workflow actions |
+| Admin | `/calendar` | Week/month schedule |
+| Admin | `/clients` | CRM |
+| Admin | `/invoices` | Create invoices, mark paid, totals |
+| Portal | `/portal` | Client home |
+| Portal | `/portal/book` | Request a clean |
+| Portal | `/portal/upcoming` | Upcoming visits |
+| Portal | `/portal/invoices` | Client invoice list |

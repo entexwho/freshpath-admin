@@ -4,6 +4,7 @@ import {
   demoCreateJob,
   demoListClients,
   demoListJobs,
+  demoRescheduleJob,
   demoUpdateJobStatus,
 } from "@/lib/data/demo-store";
 import {
@@ -31,26 +32,33 @@ async function attachClients(jobs: Job[]): Promise<JobWithClient[]> {
           full_name: client.full_name,
           address: client.address,
           phone: client.phone,
+          email: client.email,
         },
       };
     })
     .filter((j): j is JobWithClient => Boolean(j));
 }
 
-export async function listJobsWithClients(): Promise<JobWithClient[]> {
+export async function listJobsWithClients(
+  clientId?: string
+): Promise<JobWithClient[]> {
   if (!isSupabaseConfigured()) {
     const jobs = await demoListJobs();
-    return attachClients(jobs);
+    const filtered = clientId
+      ? jobs.filter((j) => j.client_id === clientId)
+      : jobs;
+    return attachClients(filtered);
   }
 
   const supabase = createClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("jobs")
-    .select(
-      "*, client:clients(id, full_name, address, phone)"
-    )
+    .select("*, client:clients(id, full_name, address, phone, email)")
     .order("scheduled_date", { ascending: true });
 
+  if (clientId) query = query.eq("client_id", clientId);
+
+  const { data, error } = await query;
   if (error) throw new Error(error.message);
   return (data ?? []) as JobWithClient[];
 }
@@ -68,9 +76,10 @@ export async function listTodaysJobs(): Promise<JobWithClient[]> {
 }
 
 export async function listUpcomingJobs(
-  view: "week" | "month" = "week"
+  view: "week" | "month" = "week",
+  clientId?: string
 ): Promise<JobWithClient[]> {
-  const jobs = await listJobsWithClients();
+  const jobs = await listJobsWithClients(clientId);
   const now = new Date();
   const start = view === "week" ? startOfWeek(now) : startOfMonth(now);
   const end = view === "week" ? endOfWeek(now) : endOfMonth(now);
@@ -79,6 +88,19 @@ export async function listUpcomingJobs(
     (job) =>
       job.status !== "cancelled" &&
       isWithinInterval(new Date(job.scheduled_date), { start, end })
+  );
+}
+
+export async function listFutureJobsForClient(
+  clientId: string
+): Promise<JobWithClient[]> {
+  const jobs = await listJobsWithClients(clientId);
+  const now = new Date();
+  return jobs.filter(
+    (job) =>
+      job.status !== "cancelled" &&
+      job.status !== "completed" &&
+      new Date(job.scheduled_date).getTime() >= startOfDay(now).getTime()
   );
 }
 
@@ -117,6 +139,26 @@ export async function updateJobStatus(
   const { data, error } = await supabase
     .from("jobs")
     .update({ status })
+    .eq("id", id)
+    .select("*")
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  return data as Job | null;
+}
+
+export async function rescheduleJob(
+  id: string,
+  scheduled_date: string
+): Promise<Job | null> {
+  if (!isSupabaseConfigured()) {
+    return demoRescheduleJob(id, scheduled_date);
+  }
+
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("jobs")
+    .update({ scheduled_date, status: "scheduled" })
     .eq("id", id)
     .select("*")
     .maybeSingle();

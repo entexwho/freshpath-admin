@@ -1,4 +1,6 @@
 export type JobStatus = "scheduled" | "in_progress" | "completed" | "cancelled";
+export type UserRole = "admin" | "client";
+export type InvoiceStatus = "draft" | "sent" | "paid" | "void";
 
 export type Client = {
   id: string;
@@ -8,6 +10,7 @@ export type Client = {
   address: string | null;
   access_notes: string | null;
   private_notes: string | null;
+  user_id?: string | null;
   created_at: string;
 };
 
@@ -23,7 +26,32 @@ export type Job = {
 };
 
 export type JobWithClient = Job & {
-  client: Pick<Client, "id" | "full_name" | "address" | "phone">;
+  client: Pick<Client, "id" | "full_name" | "address" | "phone" | "email">;
+};
+
+export type Invoice = {
+  id: string;
+  client_id: string;
+  job_id: string | null;
+  amount: number;
+  status: InvoiceStatus;
+  due_date: string | null;
+  paid_at: string | null;
+  notes: string | null;
+  created_at: string;
+};
+
+export type InvoiceWithClient = Invoice & {
+  client: Pick<Client, "id" | "full_name" | "email">;
+  job?: Pick<Job, "id" | "scheduled_date" | "status"> | null;
+};
+
+export type SessionUser = {
+  role: UserRole;
+  name: string;
+  email?: string;
+  clientId?: string | null;
+  userId?: string;
 };
 
 export type NewClientInput = {
@@ -42,4 +70,13 @@ export type NewJobInput = {
   estimated_price?: number;
   job_notes?: string;
   status?: JobStatus;
+};
+
+export type NewInvoiceInput = {
+  client_id: string;
+  job_id?: string | null;
+  amount: number;
+  status?: InvoiceStatus;
+  due_date?: string;
+  notes?: string;
 };

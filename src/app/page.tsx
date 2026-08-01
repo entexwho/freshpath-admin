@@ -1,5 +1,8 @@
 import { redirect } from "next/navigation";
+import { getSessionUser } from "@/lib/auth/session";
 
-export default function HomePage() {
-  redirect("/dashboard");
+export default async function HomePage() {
+  const user = await getSessionUser();
+  if (!user) redirect("/login");
+  redirect(user.role === "admin" ? "/dashboard" : "/portal");
 }
